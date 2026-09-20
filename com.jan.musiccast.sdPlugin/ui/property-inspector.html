@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>MusicCast Volume</title>
+	<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+<body>
+	<sdpi-item label="Speaker">
+		<sdpi-select setting="ip" datasource="devices" loading="Scanning network…" placeholder="Select a speaker" hot-reload></sdpi-select>
+	</sdpi-item>
+	<sdpi-item label="Manual IP">
+		<sdpi-textfield setting="manualIp" placeholder="Only if not found above" pattern="^[0-9a-zA-Z.\-]*$"></sdpi-textfield>
+	</sdpi-item>
+	<sdpi-item label="Name">
+		<sdpi-textfield setting="name" placeholder="Speaker name (default)" maxlength="16"></sdpi-textfield>
+	</sdpi-item>
+	<sdpi-item label="Step">
+		<sdpi-range setting="step" min="1" max="10" default="2" showlabels></sdpi-range>
+	</sdpi-item>
+</body>
+</html>

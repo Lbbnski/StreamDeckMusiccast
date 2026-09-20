@@ -1,0 +1,4 @@
+node_modules/
+com.jan.musiccast.sdPlugin/bin/
+com.jan.musiccast.sdPlugin/logs/
+*.streamDeckPlugin
