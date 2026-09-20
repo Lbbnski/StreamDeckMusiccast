@@ -11,7 +11,7 @@ import streamDeck, {
 } from "@elgato/streamdeck";
 import type { JsonObject, JsonValue } from "@elgato/utils";
 import { discoverSpeakers } from "../discovery";
-import { getName, getStatus, setMute, setVolume, type Status } from "../musiccast";
+import { getName, getStatus, powerOn, setMute, setVolume, type Status } from "../musiccast";
 
 type Settings = { ip?: string; manualIp?: string; name?: string; step?: number };
 type Ctx = Pick<DialAction<Settings>, "setFeedback">;
@@ -64,6 +64,7 @@ export class VolumeDial extends SingletonAction<Settings> {
 		const id = ev.action.id;
 		const st = this.state.get(id);
 		if (!ip || !st) return this.refresh(id, ev.action, ev.payload.settings);
+		if (!st.on) return;
 
 		// Update locally right away, then send a single debounced request so fast turns feel smooth.
 		st.volume = Math.min(st.maxVolume, Math.max(0, st.volume + ev.payload.ticks * step));
@@ -79,8 +80,13 @@ export class VolumeDial extends SingletonAction<Settings> {
 		const st = this.state.get(ev.action.id);
 		if (!ip || !st) return;
 		try {
-			st.mute = !st.mute;
-			await setMute(ip, st.mute);
+			if (!st.on) {
+				await powerOn(ip);
+				st.on = true;
+			} else {
+				st.mute = !st.mute;
+				await setMute(ip, st.mute);
+			}
 			await this.render(ev.action, ev.payload.settings, st);
 		} catch {
 			await ev.action.showAlert();
@@ -110,8 +116,8 @@ export class VolumeDial extends SingletonAction<Settings> {
 	private render(ctx: Ctx, settings: Settings, st: Status): Promise<void> {
 		return ctx.setFeedback({
 			title: settings.name || this.names.get(speakerIp(settings) ?? "") || speakerIp(settings) || "MusicCast",
-			value: st.mute ? "muted" : `${st.volume}`,
-			indicator: { value: Math.round((st.volume / st.maxVolume) * 100), enabled: !st.mute },
+			value: !st.on ? "standby" : st.mute ? "muted" : `${st.volume}`,
+			indicator: { value: Math.round((st.volume / st.maxVolume) * 100), enabled: st.on && !st.mute },
 		});
 	}
 }

@@ -2,7 +2,7 @@
 
 A Stream Deck plugin that controls the volume of Yamaha MusicCast speakers and receivers with the dials of a **Stream Deck +**.
 
-- Turn the dial to change the volume, press it to mute or unmute.
+- Turn the dial to change the volume, press it to switch the speaker on, mute or unmute.
 - The dial display shows the speaker name, the current volume and a level bar.
 - One dial controls one speaker, so several speakers can be controlled at the same time.
 - Speakers are found automatically on your network. No need to look up IP addresses.
@@ -42,7 +42,7 @@ npx streamdeck restart com.jan.musiccast
 
 1. Open the Stream Deck app and drag **Speaker Volume** from the **MusicCast Volume** category onto a dial.
 2. In the settings panel, choose your speaker from the **Speaker** dropdown (see [Settings](#settings)).
-3. Turn the dial to change the volume. Press the dial to mute or unmute.
+3. Turn the dial to change the volume. Press the dial to switch the speaker on from standby, or to mute and unmute it.
 4. To control another speaker, put another **Speaker Volume** action on a second dial and choose a different speaker.
 
 ### Dial behaviour
@@ -50,13 +50,15 @@ npx streamdeck restart com.jan.musiccast
 | Interaction | Effect |
 |---|---|
 | Rotate clockwise / counter-clockwise | Raises / lowers the volume by *Step* per tick, limited to 0 and the speaker's maximum |
-| Press | Toggles mute |
+| Press | Turns the speaker on if it is in standby, otherwise toggles mute |
+
+While a speaker is in standby, turning the dial has no effect.
 
 The display shows:
 
 - **Title:** the name you configured, or the speaker's own name (see below).
-- **Value:** the volume, `muted` while muted, `offline` if the speaker cannot be reached, or `Set IP` if no speaker is configured yet.
-- **Bar:** the volume as a percentage of the speaker's maximum. It is hidden while muted.
+- **Value:** the volume, `muted` while muted, `standby` while the speaker is switched off, `offline` if the speaker cannot be reached, or `Set IP` if no speaker is configured yet.
+- **Bar:** the volume as a percentage of the speaker's maximum. It is hidden while muted or in standby.
 
 The plugin re-reads the speaker state every 5 seconds, so volume or mute changes made with the Yamaha app or a remote control show up on the dial as well.
 
@@ -79,8 +81,9 @@ The plugin talks to the speakers with Yamaha's Extended Control HTTP API at `htt
 
 | Purpose | Request |
 |---|---|
-| Read volume, maximum volume, mute | `main/getStatus` |
+| Read power state, volume, maximum volume, mute | `main/getStatus` |
 | Set volume | `main/setVolume?volume=<n>` |
+| Turn on from standby | `main/setPower?power=on` |
 | Mute / unmute | `main/setMute?enable=<true\|false>` |
 | Speaker name | `system/getNetworkStatus` |
 | Identify a MusicCast device | `system/getDeviceInfo` |
@@ -144,7 +147,7 @@ Plugin logs are written to `com.jan.musiccast.sdPlugin/logs/`. The manifest enab
 | Symptom | Likely cause and fix |
 |---|---|
 | Dropdown stays empty or shows "Scanning network…" | The scan takes about 3 seconds. If nothing appears, the speaker may be on another network segment, or a firewall blocks multicast UDP (port 1900). Enter the IP in **Manual IP**. |
-| Dial shows `offline` | The speaker is off the network, in deep standby with network standby disabled, or its IP changed. In the Yamaha app, enable network standby, and pick the speaker again. |
+| Dial shows `offline` | The speaker is off the network, in deep standby with network standby disabled, or its IP changed. A speaker in standby shows `standby` instead and can be woken with a press, provided network standby is enabled. In the Yamaha app, enable network standby, and pick the speaker again. |
 | Dial shows `Set IP` | No speaker is selected yet. Open the settings and choose one. |
 | Settings panel is empty | sdpi-components is loaded from the internet. Check your connection. |
 | Dial does not react at all | Check `com.jan.musiccast.sdPlugin/logs/` and rebuild with `npm run build`, then restart the plugin. |
